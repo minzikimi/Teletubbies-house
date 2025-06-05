@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js'
 import GUI from 'lil-gui'
 import { createTeletubbies } from './components/teletuby'
+import { createNooNoo } from './components/noonoo'
 
 // === Scene Setup ===
 const scene = new THREE.Scene()
@@ -205,6 +206,7 @@ window.addEventListener('resize', () => {
 
 // === Add Teletubbies ===
 createTeletubbies(scene)
+createNooNoo(scene)
 
 // === Audio Setup ===
 const listener = new THREE.AudioListener()
