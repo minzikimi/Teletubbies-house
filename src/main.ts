@@ -17,8 +17,7 @@ camera.position.set(0, 8, 15)
 // === Renderer ===
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setSize(window.innerWidth, window.innerHeight)
-renderer.outputEncoding = THREE.sRGBEncoding
-renderer.physicallyCorrectLights = true
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.xr.enabled = true // VR 기능 활성화!
 document.body.appendChild(renderer.domElement)
 document.body.appendChild(VRButton.createButton(renderer)) // VR 버튼 추가
@@ -45,9 +44,10 @@ const dome = new THREE.Mesh(domeGeometry, domeMaterial)
 dome.position.y = 7.5
 scene.add(dome)
 
-gui.addColor({ domeColor: 0x6AB8C5 }, 'domeColor').name('Dome Color').onChange(value => {
-  domeMaterial.color.set(value)
-})
+gui.addColor({ domeColor: 0x6AB8C5 }, 'domeColor').name('Dome Color').onChange((value: number) => {
+  domeMaterial.color.set(value);
+});
+
 gui.add(domeMaterial, 'emissiveIntensity', 0, 2).name('Emissive Intensity')
 
 // === Floor ===
@@ -212,7 +212,7 @@ createNooNoo(scene)
 //custard machine
 const custardMachine = new THREE.Group();
 
-function createPillar(x) {
+function createPillar(x: number) {
   const pillarGroup = new THREE.Group();
 
   // Main pillar (soft silver/gray)

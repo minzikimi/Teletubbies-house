@@ -21,7 +21,8 @@ const teletubbyColors = [
 
   for (let i = 0; i < 4; i++) {
     const group = new THREE.Group()
-    group.position.set(...teletubbyPositions[i])
+const [x, y, z] = teletubbyPositions[i];
+group.position.set(x, y, z);
     group.scale.setScalar(teletubbyHeights[i])
     teletubbies.push(group)
     scene.add(group)
@@ -166,6 +167,13 @@ const teletubbyColors = [
         antenna.position.set(0, 1.15, 0)
         antenna.rotation.x = -Math.PI / 2
         break
+         default:
+    antenna = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.02, 0.02, 0.3, 12),
+      new THREE.MeshStandardMaterial({ color })
+    );
+    antenna.position.set(0, 1.2, 0);
+    break;
     }
 
     group.add(antenna)
