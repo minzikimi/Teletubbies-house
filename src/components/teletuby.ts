@@ -11,10 +11,10 @@ const teletubbyColors = [
 ]
 
   const teletubbyPositions = [
-    [-2, 0, -3],
+    [-2, 0, -2],
     [2, 0, 3.5],
-    [0.7, 0, -3.5],
-    [5, 0, -3]
+    [2, 0, -5],
+    [5, 0, -6]
   ]
 
   const teletubbies: THREE.Group[] = []

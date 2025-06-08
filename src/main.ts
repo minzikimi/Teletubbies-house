@@ -208,6 +208,93 @@ window.addEventListener('resize', () => {
 createTeletubbies(scene)
 createNooNoo(scene)
 
+ 
+//custard machine
+const custardMachine = new THREE.Group();
+
+function createPillar(x) {
+  const pillarGroup = new THREE.Group();
+
+  // Main pillar (soft silver/gray)
+  const pillar = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.28, 0.28, 1.3, 32),
+    new THREE.MeshStandardMaterial({ color: 0xd8d8d8, metalness: 0.2, roughness: 0.6 })
+  );
+  pillar.position.y = 0.65;
+  pillarGroup.add(pillar);
+
+  // Blue ring (soft pastel blue)
+  const blueRing = new THREE.Mesh(
+    new THREE.TorusGeometry(0.3, 0.06, 16, 32),
+    new THREE.MeshStandardMaterial({ color: 0x68aff7, roughness: 0.7 })
+  );
+  blueRing.position.y = 1.22;
+  blueRing.rotation.x = Math.PI / 2;
+  pillarGroup.add(blueRing);
+
+  // Dome on top (soft pink, low emissive)
+  const dome = new THREE.Mesh(
+    new THREE.SphereGeometry(0.25, 32, 16),
+    new THREE.MeshStandardMaterial({ color: 0xfe71b9, emissive: 0xfe71b9, emissiveIntensity: 0.3 })
+  );
+  dome.position.y = 1.42;
+  pillarGroup.add(dome);
+
+  // Base (soft pink)
+  const base = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.35, 0.35, 0.2, 32),
+    new THREE.MeshStandardMaterial({ color: 0xffe0f0, roughness: 0.7 })
+  );
+  base.position.y = 0.1;
+  pillarGroup.add(base);
+
+  // Button (soft red, low emissive)
+  const button = new THREE.Mesh(
+    new THREE.SphereGeometry(0.12, 16, 16),
+    new THREE.MeshStandardMaterial({ color: 0xffa0a0, emissive: 0xff8080, emissiveIntensity: 0.2 })
+  );
+  button.position.set(0, 0.7, 0.28);
+  pillarGroup.add(button);
+
+  pillarGroup.position.x = x;
+  return pillarGroup;
+}
+
+custardMachine.add(createPillar(-0.75));
+custardMachine.add(createPillar(0.75));
+
+// Base bar (soft pink)
+const baseBar = new THREE.Mesh(
+  new THREE.BoxGeometry(1.4, 0.15, 0.6),
+  new THREE.MeshStandardMaterial({ color: 0xffe0f0, roughness: 0.7 })
+);
+baseBar.position.set(0, 0.1, 0);
+custardMachine.add(baseBar);
+
+// Lever/arm (soft blue)
+const lever = new THREE.Mesh(
+  new THREE.BoxGeometry(0.7, 0.08, 0.12),
+  new THREE.MeshStandardMaterial({ color: 0xa3d1ff, roughness: 0.7 })
+);
+lever.position.set(-0.15, 0.45, 0.22);
+lever.rotation.z = Math.PI / 7;
+custardMachine.add(lever);
+
+// Bowl (soft, translucent pink)
+const bowl = new THREE.Mesh(
+  new THREE.SphereGeometry(0.22, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+  new THREE.MeshStandardMaterial({ color: 0xffe0f0, transparent: true, opacity: 0.6 })
+);
+bowl.position.set(0.18, 0.13, 0.32);
+bowl.rotation.x = Math.PI;
+custardMachine.add(bowl);
+
+// Position the machine in the room
+custardMachine.position.set(5, 0, -5); // Adjust as needed
+scene.add(custardMachine);
+
+
+
 // === Audio Setup ===
 const listener = new THREE.AudioListener()
 camera.add(listener)
