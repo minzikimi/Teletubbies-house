@@ -20,8 +20,7 @@ renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.xr.enabled = true // VR 기능 활성화!
 document.body.appendChild(renderer.domElement)
-document.body.appendChild(VRButton.createButton(renderer)) // VR 버튼 추가
-
+document.body.appendChild(VRButton.createButton(renderer)) 
 // === Controls ===
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.target.set(0, 0, 0)
@@ -139,60 +138,424 @@ for (let i = 0; i < bedCount; i++) {
   scene.add(pillow)
 }
 
-// === Smiley Pancakes ===
-const pancakeStackHeight = 3
-const pancakeRadius = 0.6
-const pancakeThickness = 0.1
-const pancakeColor = 0xf5d6a1
+// === Smiley Pancakes (Grouped) ===
+const pancakeGroup = new THREE.Group();
+const pancakeStackHeight = 6;
+const pancakeRadius = 0.6;
+const pancakeThickness = 0.1;
+const pancakeColor = 0xf5d6a1;
+
+// Top of the table is at y = 0.57, stack starts slightly above that
+const stackStartY = 0.57 + 0.05;
 
 for (let i = 0; i < pancakeStackHeight; i++) {
   const pancake = new THREE.Mesh(
     new THREE.CylinderGeometry(pancakeRadius, pancakeRadius, pancakeThickness, 32),
     new THREE.MeshStandardMaterial({ color: pancakeColor })
-  )
-  pancake.position.set(0, 0.3 + i * (pancakeThickness + 0.02), 0)
-  scene.add(pancake)
+  );
+  pancake.position.y = stackStartY + i * (pancakeThickness + 0.02);
+  pancakeGroup.add(pancake);
 }
 
 // === Smiley Face on Top Pancake ===
-const eyeGeometry = new THREE.CircleGeometry(0.05, 16)
-const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
-const eyeLeft = new THREE.Mesh(eyeGeometry, eyeMaterial)
-const eyeRight = new THREE.Mesh(eyeGeometry, eyeMaterial)
+const topPancakeY = stackStartY + (pancakeStackHeight - 1) * (pancakeThickness + 0.02);
+const eyeGeometry = new THREE.CircleGeometry(0.05, 16);
+const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
-const mouthGeometry = new THREE.RingGeometry(0.12, 0.14, 32, 1, 0, Math.PI)
-const mouthMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
-const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial)
+const eyeLeft = new THREE.Mesh(eyeGeometry, eyeMaterial);
+eyeLeft.position.set(-0.15, topPancakeY + 0.051, 0.15);
+eyeLeft.rotation.x = -Math.PI / 2;
 
-const topPancakeY = 0.3 + (pancakeStackHeight - 1) * (pancakeThickness + 0.02)
+const eyeRight = new THREE.Mesh(eyeGeometry, eyeMaterial);
+eyeRight.position.set(0.15, topPancakeY + 0.051, 0.15);
+eyeRight.rotation.x = -Math.PI / 2;
 
-eyeLeft.position.set(-0.15, topPancakeY + 0.051, 0.15)
-eyeRight.position.set(0.15, topPancakeY + 0.051, 0.15)
-mouth.position.set(0, topPancakeY + 0.051, -0.05)
+const mouthGeometry = new THREE.RingGeometry(0.12, 0.14, 32, 1, 0, Math.PI);
+const mouthMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
-eyeLeft.rotation.x = -Math.PI / 2
-eyeRight.rotation.x = -Math.PI / 2
-mouth.rotation.x = -Math.PI / 2
+const mouth = new THREE.Mesh(mouthGeometry, mouthMaterial);
+mouth.position.set(0, topPancakeY + 0.051, -0.05);
+mouth.rotation.x = -Math.PI / 2;
 
-scene.add(eyeLeft, eyeRight, mouth)
+pancakeGroup.add(eyeLeft, eyeRight, mouth);
 
-// === Table in the center ===
-const table = new THREE.Mesh(
-  new THREE.CylinderGeometry(1, 1, 0.3, 32),
-  new THREE.MeshLambertMaterial({ color: 0x4e99ef })
-)
-table.position.set(0, 0.15, 0)
-scene.add(table)
+// Center pancake group on table
+pancakeGroup.position.set(0, 0, 0);
+scene.add(pancakeGroup);
+
+
+// === Tubby Table (center) ===
+const tubbyTable = new THREE.Group();
+
+// 1. Table Top (flat, with blue rim)
+const tableTop = new THREE.Mesh(
+  new THREE.CylinderGeometry(1.5, 1.5, 0.13, 48),
+  new THREE.MeshStandardMaterial({ color: 0x2293c6, metalness: 0.4, roughness: 0.3 })
+);
+tableTop.position.y = 0.57;
+tubbyTable.add(tableTop);
+
+// Blue Rim (torus)
+const rim = new THREE.Mesh(
+  new THREE.TorusGeometry(1.08, 0.07, 24, 64),
+  new THREE.MeshStandardMaterial({ color: 0x2293c6, metalness: 0.7, roughness: 0.25 })
+);
+rim.position.y = 0.64;
+rim.rotation.x = Math.PI / 2;
+tubbyTable.add(rim);
+
+// 2. Spring Base (bronze/gold spiral)
+const springPoints = [];
+const springTurns = 3.2;
+const springHeight = 0.38;
+const springRadius = 0.36;
+for (let i = 0; i <= 64; i++) {
+  const theta = i / 64 * Math.PI * 2 * springTurns;
+  const y = i / 64 * springHeight;
+  springPoints.push(new THREE.Vector3(Math.cos(theta) * springRadius, y, Math.sin(theta) * springRadius));
+}
+const springCurve = new THREE.CatmullRomCurve3(springPoints);
+const springGeo = new THREE.TubeGeometry(springCurve, 64, 0.055, 10, false);
+const springMat = new THREE.MeshStandardMaterial({ color: 0xb38850, metalness: 0.8, roughness: 0.25 });
+const springMesh = new THREE.Mesh(springGeo, springMat);
+springMesh.position.y = 0.19;
+tubbyTable.add(springMesh);
+
+// 3. Two Legs (angled cylinders + feet)
+for (let i = 0; i < 2; i++) {
+  const sign = i === 0 ? 1 : -1;
+  // Leg
+  const leg = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.07, 0.07, 1.15, 14),
+    new THREE.MeshStandardMaterial({ color: 0xb38850, metalness: 0.8, roughness: 0.25 })
+  );
+  leg.position.set(sign * 0.73, -0.22, 0.43);
+  leg.rotation.z = Math.PI / 4 * sign;
+  leg.rotation.x = Math.PI / 8;
+  tubbyTable.add(leg);
+
+  // Foot
+  const foot = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.17, 0.17, 0.09, 18),
+    new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.5, roughness: 0.6 })
+  );
+  foot.position.set(sign * 1.19, -0.74, 0.69);
+  tubbyTable.add(foot);
+}
+
+tubbyTable.position.set(0, 0.15, 0);
+scene.add(tubbyTable);
+
+
+function createCustardPuddle(x: number, z: number): THREE.Mesh {
+  const shape = new THREE.Shape()
+  shape.moveTo(0, 0)
+  shape.bezierCurveTo(0.2, 0.3, 0.5, 0.2, 0.3, 0)
+  shape.bezierCurveTo(0.6, -0.4, -0.4, -0.3, -0.2, 0)
+  shape.bezierCurveTo(-0.5, 0.4, -0.1, 0.4, 0, 0)
+
+  const geometry = new THREE.ShapeGeometry(shape)
+  const material = new THREE.MeshStandardMaterial({
+    color: 0xffe0f0,
+    roughness: 0.4,
+    metalness: 0,
+    transparent: true,
+    opacity: 0.8
+  })
+
+  const puddle = new THREE.Mesh(geometry, material)
+  puddle.rotation.x = -Math.PI / 2 // Lay flat
+  puddle.position.set(x, 0.01, z) // Slightly above the floor
+
+  return puddle
+}
+//golden ticket
+function createTextTexture(text: string, width: number, height: number) {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d')!;
+
+  // Background transparent or colored
+  ctx.clearRect(0, 0, width, height);
+
+  // Text style
+  ctx.font = 'bold 48px Arial';
+  ctx.fillStyle = '#b8860b';  // dark golden text color
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  ctx.fillText(text, width / 2, height / 2);
+
+  // Optional: Add some shadow or stroke for better readability
+  // ctx.strokeStyle = 'black';
+  // ctx.lineWidth = 2;
+  // ctx.strokeText(text, width / 2, height / 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.minFilter = THREE.LinearFilter; // better for text
+  return texture;
+}
+
+function addWillyWonkaTicket(x: number, z: number) {
+  const group = new THREE.Group();
+
+  const width = 1.5;
+  const height = 0.7;
+
+  // === Border Plane ===
+  const borderGeometry = new THREE.PlaneGeometry(width + 0.06, height + 0.06); // Slightly bigger
+  const borderMaterial = new THREE.MeshStandardMaterial({
+    color: 0xdaa520, // goldenrod border
+    side: THREE.DoubleSide,
+    metalness: 0.6,
+    roughness: 0.4
+  });
+  const border = new THREE.Mesh(borderGeometry, borderMaterial);
+  group.add(border);
+
+  // === Main Ticket Plane ===
+  const geometry = new THREE.PlaneGeometry(width, height);
+  const textTexture = createTextTexture('golden ticket', 512, 256);
+
+  const material = new THREE.MeshStandardMaterial({
+    side: THREE.DoubleSide,
+    map: textTexture,
+    roughness: 0.3,
+    metalness: 0.5,
+    transparent: false // No need for transparency now
+  });
+
+  const ticket = new THREE.Mesh(geometry, material);
+  group.add(ticket);
+
+  // Position the group
+  group.rotation.x = -Math.PI / 8; // tilt up slightly
+  group.position.set(x, 2.5, z); // float in air
+
+  return group;
+}
+
+// scene.add(addWillyWonkaTicket(-3, -4))
+
+function addFlower(x: number, z: number) {
+  const flowerGroup = new THREE.Group()
+
+  // Pot
+  const pot = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.3, 0.4, 0.3, 32),
+    new THREE.MeshStandardMaterial({ color: 0x964B00 })
+  )
+  pot.position.y = 0.15
+  flowerGroup.add(pot)
+
+  // Stem
+  const stem = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05, 0.05, 0.8, 16),
+    new THREE.MeshStandardMaterial({ color: 0x228B22 })
+  )
+  stem.position.y = 0.65
+  flowerGroup.add(stem)
+
+  // Center
+  const center = new THREE.Mesh(
+    new THREE.SphereGeometry(0.1, 16, 16),
+    new THREE.MeshStandardMaterial({ color: 0xffff00 })
+  )
+  center.position.y = 1.1
+  flowerGroup.add(center)
+
+  // Petals (simple circular layout)
+  const petalMaterial = new THREE.MeshStandardMaterial({ color: 0xff69b4 })
+  for (let i = 0; i < 6; i++) {
+    const angle = i * (Math.PI / 3)
+    const petal = new THREE.Mesh(
+      new THREE.SphereGeometry(0.08, 12, 12),
+      petalMaterial
+    )
+    petal.position.set(Math.cos(angle) * 0.2, 1.1, Math.sin(angle) * 0.2)
+    flowerGroup.add(petal)
+  }
+
+  flowerGroup.position.set(x, 0, z)
+  return flowerGroup
+}
+
+// scene.add(addFlower(-5, 3))
+
+// spongebob
+
+function addSpongeBob() {
+  const spongebob = new THREE.Group()
+
+  // Body
+  const body = new THREE.Mesh(
+    new THREE.BoxGeometry(0.8, 1.2, 0.3),
+    new THREE.MeshStandardMaterial({ color: 0xffff33 })
+  )
+  body.position.y = 0.6
+  spongebob.add(body)
+
+  // Eyes
+  const eyeMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff })
+  const eyeLeft = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), eyeMaterial)
+  const eyeRight = eyeLeft.clone()
+  eyeLeft.position.set(-0.2, 1.1, 0.16)
+  eyeRight.position.set(0.2, 1.1, 0.16)
+
+  const pupilMaterial = new THREE.MeshStandardMaterial({ color: 0x000000 })
+  const pupilLeft = new THREE.Mesh(new THREE.SphereGeometry(0.04, 16, 16), pupilMaterial)
+  const pupilRight = pupilLeft.clone()
+  pupilLeft.position.set(-0.2, 1.1, 0.22)
+  pupilRight.position.set(0.2, 1.1, 0.22)
+
+  spongebob.add(eyeLeft, eyeRight, pupilLeft, pupilRight)
+
+  // Pants
+  const pants = new THREE.Mesh(
+    new THREE.BoxGeometry(0.8, 0.4, 0.3),
+    new THREE.MeshStandardMaterial({ color: 0x8b4513 })
+  )
+  pants.position.y = 0.2
+  spongebob.add(pants)
+
+  // Legs
+  const legMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff })
+  for (let i = 0; i < 2; i++) {
+    const leg = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.05, 0.05, 0.3, 12),
+      legMaterial
+    )
+    leg.position.set(i === 0 ? -0.2 : 0.2, 0.05, 0)
+    spongebob.add(leg)
+  }
+
+  spongebob.position.set(11, 0, 2)
+  return spongebob
+}
+
+// Store clickable objects and their URLs
+const clickableObjects: { object: THREE.Object3D; url: string }[] = [];
+
+
+// Add flower, ticket, and spongebob to clickable list with URLs
+const flower = addFlower(-10, -8);
+scene.add(flower);
+clickableObjects.push({ object: flower, url: 'https://hannac7.github.io/Daisy/' });
+
+const ticket = addWillyWonkaTicket(-11, 5);
+scene.add(ticket);
+clickableObjects.push({ object: ticket, url: 'https://kevingarciamartin.github.io/willy-wonka/' });
+
+const spongebob = addSpongeBob();
+scene.add(spongebob);
+clickableObjects.push({ object: spongebob, url: 'https://spongebob-bedroom.vercel.app' });
+
+
+//floating cake
+function createFloatingCake() {
+  const group = new THREE.Group();
+
+  // === Cake Base Layer ===
+  const baseLayer = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.8, 0.8, 0.3, 32),
+    new THREE.MeshStandardMaterial({ color: 0xffd1dc, roughness: 0.5 }) // light pink cake
+  );
+  baseLayer.position.y = 0;
+
+  // === Middle Layer ===
+  const middleLayer = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.7, 0.7, 0.25, 32),
+    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 }) // white cream
+  );
+  middleLayer.position.y = 0.3;
+
+  // === Top Layer ===
+  const topLayer = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.5, 0.5, 0.2, 32),
+    new THREE.MeshStandardMaterial({ color: 0xffb6c1, roughness: 0.5 }) // light pink again
+  );
+  topLayer.position.y = 0.55;
+
+  // === Cherry on top ===
+  const cherry = new THREE.Mesh(
+    new THREE.SphereGeometry(0.1, 16, 16),
+    new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0x660000, emissiveIntensity: 0.5 })
+  );
+  cherry.position.set(0, 0.75, 0);
+
+  group.add(baseLayer, middleLayer, topLayer, cherry);
+
+  // Position the whole group in the air
+  group.position.set(8, 3, 10); // floating at y = 3
+
+  return group;
+}
+
+
+
+const cakeOnTable = createFloatingCake();
+scene.add(cakeOnTable);
+clickableObjects.push({
+  object: cakeOnTable,
+  url: 'https://your-cake-project-link.com'
+});
+
+
+
+// Raycaster & mouse vector
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+// Listen for clicks
+window.addEventListener('click', (event) => {
+  // Calculate mouse position in normalized device coordinates (-1 to +1) for both components.
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+
+  // Update the raycaster with the camera and mouse position
+  raycaster.setFromCamera(mouse, camera);
+
+  // Collect all mesh descendants of clickable objects (since some are groups)
+const meshesToTest: THREE.Mesh[] = [];
+clickableObjects.forEach((item) => {
+  item.object.traverse((child: THREE.Object3D) => {
+    if ((child as THREE.Mesh).isMesh) {
+      meshesToTest.push(child as THREE.Mesh);
+    }
+  });
+});
+
+
+  // Check for intersections
+  const intersects = raycaster.intersectObjects(meshesToTest, true);
+
+  if (intersects.length > 0) {
+    // Find which clickable object was clicked (the one that contains the intersected mesh)
+    const clickedMesh = intersects[0].object;
+    const clicked = clickableObjects.find(({ object }) =>
+      object.children.includes(clickedMesh) || object === clickedMesh || object.getObjectById(clickedMesh.id)
+    );
+
+    if (clicked) {
+      window.open(clicked.url, '_blank'); // open in new tab
+    }
+  }
+});
+
+
+
+
 
 // === Lighting ===
-const ambientLight = new THREE.AmbientLight(0xffffff, 1.5)
+const ambientLight = new THREE.AmbientLight(0xfcfcfc, 1.5)
 gui.add(ambientLight, 'intensity', 0, 3).name('Ambient Light')
 
 const hemiLight = new THREE.HemisphereLight(0xeeeeff, 0x6AB8C5, 2.0)
 hemiLight.position.set(0, 20, 0)
 scene.add(hemiLight)
 
-const pointLight = new THREE.PointLight(0xffffff, 5, 100)
+const pointLight = new THREE.PointLight(0xfcfcfc, 5, 100)
 pointLight.position.set(0, 12, 0)
 scene.add(pointLight)
 gui.add(pointLight, 'intensity', 0, 10).name('Point Light')
@@ -207,6 +570,11 @@ window.addEventListener('resize', () => {
 // === Add Teletubbies ===
 createTeletubbies(scene)
 createNooNoo(scene)
+const custardPuddle1 = createCustardPuddle(5, -5.1)
+const custardPuddle2 = createCustardPuddle(4, -4.6)
+const custardPuddle3 = createCustardPuddle(7, -5.5)
+
+scene.add(custardPuddle1, custardPuddle2, custardPuddle3)
 
  
 //custard machine
@@ -330,3 +698,4 @@ renderer.setAnimationLoop(() => {
   controls.update()
   renderer.render(scene, camera)
 })
+
