@@ -6,6 +6,7 @@ import GUI from 'lil-gui'
 import { createTeletubbies } from './components/teletuby'
 import { createNooNoo } from './components/noonoo'
 
+
 // === Scene Setup ===
 const scene = new THREE.Scene()
 scene.fog = new THREE.Fog(0x87ceeb, 15, 50)
@@ -498,7 +499,7 @@ const cakeOnTable = createFloatingCake();
 scene.add(cakeOnTable);
 clickableObjects.push({
   object: cakeOnTable,
-  url: 'https://your-cake-project-link.com'
+  url: 'https://immersive-space.netlify.app'
 });
 
 
@@ -542,8 +543,6 @@ clickableObjects.forEach((item) => {
     }
   }
 });
-
-
 
 
 
