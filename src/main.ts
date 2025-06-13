@@ -661,6 +661,41 @@ custardMachine.position.set(5, 0, -5); // Adjust as needed
 scene.add(custardMachine);
 
 
+function createFloatingText(message: string): THREE.Mesh {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.font = 'bold 48px Arial';
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.minFilter = THREE.LinearFilter;
+
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+    side: THREE.DoubleSide
+  });
+
+  const geometry = new THREE.PlaneGeometry(6, 1.5);
+  const plane = new THREE.Mesh(geometry, material);
+
+  plane.position.set(0, 5.5, 0); // Floating position
+  return plane;
+}
+
+const floatingText = createFloatingText('Find secret objects to view other bedrooms!');
+scene.add(floatingText);
+floatingText.lookAt(camera.position);
+
 
 // === Audio Setup ===
 const listener = new THREE.AudioListener()
